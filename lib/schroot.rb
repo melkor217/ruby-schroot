@@ -43,6 +43,7 @@ class Schroot
   end
 
   def start(chroot_name = 'default')
+    stop if @session
     command = ['schroot', '-b', '-c', chroot_name]
     ObjectSpace.define_finalizer(self, proc { stop })
     stdin, stdout, stderr = safe_run("schroot -b -c %s" % chroot_name)
@@ -50,6 +51,7 @@ class Schroot
     @session = stdout.gets.strip
     stdin, stdout, stderr = safe_run("schroot --location -c session:%s" % @session)
     @location = stdout.gets.strip
+    return @session
   end
 
   def stop
