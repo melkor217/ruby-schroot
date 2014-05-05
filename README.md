@@ -37,11 +37,13 @@ or just
 Examples
 ------
      
-     irb(main):005:0> require 'schroot'
-     => true
-     irb(main):006:0> my_session = Schroot.new('sid')
-     => #<Schroot:0x8ba789c @chroot="sid", @session="sid-19131ba0-84ba-42e5-a2fb-d2d375d61750", @location="/var/lib/schroot/mount/sid-19131ba0-84ba-42e5-a2fb-d2d375d61750">
-     irb(main):007:0> stdin, stdout, stderr = my_session.run("echo Hello, World!")
-     => [#<IO:fd 22>, #<IO:fd 24>, #<IO:fd 26>]
-     irb(main):008:0> stdout.gets
-     => "Hello, World!\n"
+```ruby
+irb(main):005:0> require 'schroot'
+=> true
+irb(main):006:0> my_session = Schroot.new('sid')
+=> #<Schroot:0x8ba789c @chroot="sid", @session="sid-19131ba0-84ba-42e5-a2fb-d2d375d61750", @location="/var/lib/schroot/mount/sid-19131ba0-84ba-42e5-a2fb-d2d375d61750">
+irb(main):007:0> stdin, stdout, stderr = my_session.run("echo Hello, World!")
+=> [#<IO:fd 22>, #<IO:fd 24>, #<IO:fd 26>]
+irb(main):008:0> stdout.gets
+=> "Hello, World!\n"
+```
