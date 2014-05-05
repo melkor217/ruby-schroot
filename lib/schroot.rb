@@ -5,6 +5,7 @@ SCHROOT_BASE="/var/lib/schroot"
 class SchrootError < StandardError
 end
 
+# Schroot session handler
 class Schroot
   def initialize(chroot_name = 'default')
     start(chroot_name)
@@ -33,15 +34,31 @@ class Schroot
     return command.join(" ")
   end
 
+  # Runs command inside of chroot session.
+  # Session must be started before.
+  #
+  # @example
+  #   session.run("ping localhost",{:user => 'rainbowdash',:preserve_environment => true})
+  #     => [#<IO:fd 16>, #<IO:fd 18>, #<IO:fd 20>]
+  # @param cmd [String] command to run
+  # @param kwargs [Hash] extra args
+  # @return [Array<(IO:fd, IO:fd, IO:fd)>] descriptors for stdin, stdout, stderr
   def run(cmd, kwargs = {})
     return safe_run(command(cmd,kwargs))
-    # TBD
   end
 
+  # Clones current session
+  #
+  # @return [Object] new session object
   def clone
     return Schroot.new(@chroot)
   end
 
+  # Starts the session of `chroot_name` chroot
+  #
+  # @param chroot_name [String] name of configured chroot
+  # @return [String] schroot session id
+  # A string representing schroot session id.
   def start(chroot_name = 'default')
     stop if @session
     command = ['schroot', '-b', '-c', chroot_name]
@@ -54,10 +71,14 @@ class Schroot
     return @session
   end
 
+  # Stops current chroot session.
+  #
+  # @param chroot_name [String] name of configured chroot
+  # @return [nil] session_id of killed session (should be nil)
   def stop
     stdin, stdout, stderr = safe_run("schroot -e -c %s" % @session)
-    @session = nil
     @location = nil
+    @session = nil
   end
 
   private :safe_run, :command

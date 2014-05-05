@@ -9,7 +9,7 @@ task :build => :test do
 end
 
 task :install => :build do
-  system "sudo gem install schroot-0.0.1.gem"
+  system "sudo gem install schroot-*.gem"
 end
 
 task :default => :build

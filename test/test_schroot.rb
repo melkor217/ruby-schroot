@@ -2,10 +2,6 @@ require 'test/unit'
 require 'schroot'
 
 class SchrootTest < Test::Unit::TestCase
-  #  def test_hello
-  #    assert_equal "Hello world!",
-  #      Schroot.hi
-  #  end
   def test_start
     test = Schroot.new('default')
     print_debug(test,:test)
