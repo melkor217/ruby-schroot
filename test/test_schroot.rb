@@ -7,14 +7,14 @@ class SchrootTest < Test::Unit::TestCase
   #      Schroot.hi
   #  end
   def test_start
-    test = Schroot.new 'sid'
+    test = Schroot.new
     print_debug(test,:test)
 
     test_clone = test.clone
-    print_debug(test_clone,:clone)
+    print_debug(test_clone,:test_clone)
 
     test_dup = test.dup
-    print_debug(test_clone,:dup)
+    print_debug(test_dup,:test_dup)
 
     test.stop
     print_debug(test,:stopped)

@@ -21,18 +21,19 @@ class Schroot
   def command(cmd, kwargs = {})
     command = ['schroot', '-r', '-c']
     if kwargs.has_key? :user
-      command.push '-u'
-      command.push kwargs[:user]
+      command  << '-u'
+      command << kwargs[:user]
     end
     if kwargs.has_key? :preserve_environment
-      command_push '-p'
+      command << '-p'
     end
-    command.push '--'
-    command.push cmd
+    command << '--'
+    command << cmd
     return command
   end
 
-  def run
+  def run(cmd, kwargs = {})
+    cmd_string = command(cmd,kwargs)
     # TBD
   end
 
