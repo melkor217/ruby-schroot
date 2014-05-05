@@ -19,7 +19,8 @@ class Schroot
   end
 
   def command(cmd, kwargs = {})
-    command = ['schroot', '-r', '-c']
+    raise SchrootError, "No current session" unless @session
+    command = ['schroot', '-r', '-c', @session]
     if kwargs.has_key? :user
       command  << '-u'
       command << kwargs[:user]
@@ -29,11 +30,11 @@ class Schroot
     end
     command << '--'
     command << cmd
-    return command
+    return command.join(" ")
   end
 
   def run(cmd, kwargs = {})
-    cmd_string = command(cmd,kwargs)
+    return safe_run(command(cmd,kwargs))
     # TBD
   end
 
