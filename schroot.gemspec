@@ -12,6 +12,6 @@ Gem::Specification.new do |s|
     "Rakefile"]
   s.test_files  = ["test/test_schroot.rb"]
   s.homepage    =
-  'http://rubygems.org/gems/schroot'
+  'https://github.com/melkor217/ruby-schroot'
   s.license     = 'WTFPL'
 end
