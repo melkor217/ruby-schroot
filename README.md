@@ -75,3 +75,4 @@ Using logger:
   irb(main):007:0> stream[1].gets
   => "Linux dan-desktop 3.13-1-amd64 #1 SMP Debian 3.13.7-1 (2014-03-25) x86_64 GNU/Linux\n"
 ```
+
