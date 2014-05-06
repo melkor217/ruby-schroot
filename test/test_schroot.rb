@@ -17,9 +17,10 @@ class SchrootTest < Test::Unit::TestCase
     assert_not_nil test_clone.chroot
     assert_not_nil test_clone.location
 
-    assert_not_equal test.session, test_clone.session
-    assert_not_equal test.session, test_clone.location
-    assert_equal test.chroot, test_clone.chroot
+    assert_not_nil test.session
+    assert_not_nil test_clone.session
+    assert_not_nil test.location
+    assert_not_nil test_clone.location
 
     test.stop
     print_debug(test,:stopped)

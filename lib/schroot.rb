@@ -1,4 +1,5 @@
 require 'open3'
+require 'logger'
 
 SCHROOT_BASE="/var/lib/schroot"
 
@@ -7,15 +8,27 @@ end
 
 # Schroot session handler
 class Schroot
-  def initialize(chroot_name = 'default')
+  def initialize(chroot_name = 'default', &block)
+    @logger = Logger.new nil
+
+    if block_given?
+      if block.arity == 1
+        yield self
+      elsif block.arity == 0
+        instance_eval &block
+      end
+    end
+
     start(chroot_name)
   end
 
   def safe_run(cmd)
+    @logger.info("Executing %s" % cmd)
     stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
     if wait_thr.value != 0
       raise SchrootError, "\ncmd=\"%s\"\nreturn_code= %i\nstdout= \"%s\"" % [cmd, wait_thr.value, stdout.gets]
     end
+    @logger.info("Done!")
     return stdin, stdout, stderr
   end
 
@@ -60,6 +73,7 @@ class Schroot
   # @return [String] schroot session id
   # A string representing schroot session id.
   def start(chroot_name = 'default')
+    @logger.debug("Starting chroot session")
     stop if @session
     command = ['schroot', '-b', '-c', chroot_name]
     ObjectSpace.define_finalizer(self, proc { stop })
@@ -68,6 +82,7 @@ class Schroot
     @session = stdout.gets.strip
     stdin, stdout, stderr = safe_run("schroot --location -c session:%s" % @session)
     @location = stdout.gets.strip
+    @logger.debug("Session %s with %s started in %s" % [@session, @chroot, @location])
     return @session
   end
 
@@ -76,11 +91,20 @@ class Schroot
   # @param chroot_name [String] name of configured chroot
   # @return [nil] session_id of killed session (should be nil)
   def stop
+    @logger.debug("Stopping session %s with %s" % [@session, @chroot])
     stdin, stdout, stderr = safe_run("schroot -e -c %s" % @session)
+    @logger.debug("Session %s of %s should be stopped" % [@session, @chroot])
     @location = nil
     @session = nil
+
+  end
+
+  # Sets log object
+  def log(log=@logger)
+    @logger = log
+    @logger.debug("Hello there!")
   end
 
   private :safe_run, :command
-  attr_reader :session, :location, :chroot
+  attr_reader :session, :location, :chroot, :logger
 end
