@@ -27,13 +27,15 @@ Little example:
 
 Library installation is pretty simple:
 
-     $ rake
-     $ gem install ./*.gem
+```bash
+$ rake
+$ gem install ./*.gem
+```
      
 or just
-
-     $ rake install
-     
+```bash
+$ rake install
+```  
 Examples
 ------
      
