@@ -4,7 +4,7 @@ Rake::TestTask.new do |t|
   t.libs << 'test'
 end
 
-task :build => :test do
+task :build do
   system "gem build schroot.gemspec"
 end
 
