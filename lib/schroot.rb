@@ -6,6 +6,30 @@ SCHROOT_BASE="/var/lib/schroot"
 class SchrootError < StandardError
 end
 
+# Schroot config unit
+class SchrootConfigUnit
+  attr_accessor :type, :description, :union_type,
+  :directory, :users, :groups, :root_groups,
+  :aliases
+end
+
+# Schroot config data
+class SchrootConfig
+  def initialize
+    @base_conf = "/etc/schroot/schroot.conf"
+    @conf_d = "/etc/schroot/chroot.d/"
+    @chroots = {}
+  end
+
+  def readconf
+    files = [@base_conf]
+    Dir.entries(@conf_d).each do |file|
+      files << (@conf_d+file) unless ['.','..'].include? file
+    end
+    print files
+  end
+end
+
 # Schroot session handler
 class Schroot
   def initialize(chroot_name = 'default', &block)
@@ -24,9 +48,13 @@ class Schroot
 
   def safe_run(cmd)
     @logger.info("Executing %s" % cmd)
-    stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
+    begin
+      stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
+    rescue Errno::ENOENT
+      raise SchrootError, "Schroot binary is missing!"
+    end
     if wait_thr.value != 0
-      raise SchrootError, "\ncmd=\"%s\"\nreturn_code= %i\nstdout= \"%s\"" % [cmd, wait_thr.value, stdout.gets]
+      raise SchrootError, "`%s` execution failed with %i" % [cmd, wait_thr.value]
     end
     @logger.info("Done!")
     return stdin, stdout, stderr
