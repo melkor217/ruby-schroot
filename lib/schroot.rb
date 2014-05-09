@@ -47,7 +47,7 @@ class SchrootConfig
   #
   # @param name [String] name of chroot
   # @param kwargs [Hash] options
-  # @return [nil] session_id of killed session (should be nil)
+  # @return [Bool]
   def add(name, kwargs = {})
     readconf()
     filename = @conf_d+name
@@ -65,6 +65,7 @@ class SchrootConfig
         stream.puts "#{param}=#{value}"
       end
     end
+    return true
   end
 end
 
