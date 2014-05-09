@@ -26,7 +26,45 @@ class SchrootConfig
     Dir.entries(@conf_d).each do |file|
       files << (@conf_d+file) unless ['.','..'].include? file
     end
-    print files
+    name_regexp = /^\s*\[([a-z0-9A-Z\-\_]+)\]/
+    param_regexp = /^\s*([a-z0-9A-Z\-\_]+)\=(.*)$/
+    files.each do |file|
+      stream = File.open(file,"r")
+      current = nil
+      while (line = stream.gets)
+        if name_regexp.match line
+          current = name_regexp.match(line)[1]
+          @chroots[current.strip] = {"source" => file}
+        elsif current and param_regexp.match line
+          param, value = param_regexp.match(line)[1],param_regexp.match(line)[2]
+          @chroots[current][param.strip] = value.strip if current
+        end
+      end
+    end
+  end
+
+  # Adds new chroot configuration to .../chroot.d/ directory
+  #
+  # @param name [String] name of chroot
+  # @param kwargs [Hash] options
+  # @return [nil] session_id of killed session (should be nil)
+  def add(name, kwargs = {})
+    readconf()
+    filename = @conf_d+name
+    if @chroots[name] or File.exists?(filename)
+      return false
+    else
+      begin
+        stream = File.open(filename,"w")
+      rescue Errno::EACCES
+        raise SchrootError, "Cannot open #{filename} for writing"
+      end
+      stream.puts "# Generated automatically with ruby-schroot"
+      stream.puts "[#{name}]"
+      kwargs.each do |param, value|
+        stream.puts "#{param}=#{value}"
+      end
+    end
   end
 end
 
