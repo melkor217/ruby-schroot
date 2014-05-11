@@ -2,56 +2,61 @@ require 'open3'
 require 'logger'
 
 SCHROOT_BASE="/var/lib/schroot"
+BASE_CONF = "/etc/schroot/schroot.conf"
+CONF_D = "/etc/schroot/chroot.d/"
 
 class SchrootError < StandardError
 end
 
-# Schroot config unit
-class SchrootConfigUnit
-  attr_accessor :type, :description, :union_type,
-  :directory, :users, :groups, :root_groups,
-  :aliases
-end
-
-# Schroot config data
+# Schroot config manager
 class SchrootConfig
-  def initialize
-    @base_conf = "/etc/schroot/schroot.conf"
-    @conf_d = "/etc/schroot/chroot.d/"
-    @chroots = {}
-  end
-
-  def readconf
-    files = [@base_conf]
-    Dir.entries(@conf_d).each do |file|
-      files << (@conf_d+file) unless ['.','..'].include? file
+  # @return [Hash] representation of current config fules
+  def self.readconf
+    chroots = {}
+    files = [BASE_CONF]
+    Dir.entries(CONF_D).each do |file|
+      files << (CONF_D+file) unless ['.','..'].include? file
     end
-    name_regexp = /^\s*\[([a-z0-9A-Z\-\_]+)\]/
-    param_regexp = /^\s*([a-z0-9A-Z\-\_]+)\=(.*)$/
     files.each do |file|
       stream = File.open(file,"r")
       current = nil
       while (line = stream.gets)
-        if name_regexp.match line
-          current = name_regexp.match(line)[1]
-          @chroots[current.strip] = {"source" => file}
-        elsif current and param_regexp.match line
-          param, value = param_regexp.match(line)[1],param_regexp.match(line)[2]
-          @chroots[current][param.strip] = value.strip if current
+        if validate_name(line)
+          current = validate_name(line)[1]
+          chroots[current.strip] = {"source" => file}
+        elsif current and validate_param(line)
+          param, value = validate_param(line)[1],validate_param(line)[2]
+          chroots[current][param.strip] = value.strip if current
         end
       end
     end
+    return chroots
+  end
+
+  def validate_name(name)
+    return /^\s*\[([a-z0-9A-Z\-\_]+)\]/.match(name)
+  end
+
+  def validate_param(param)
+    return /^\s*([a-z0-9A-Z\-\_]+)\=(.*)$/.match(param)
   end
 
   # Adds new chroot configuration to .../chroot.d/ directory
   #
+  # @example
+  # SchrootConfig.add("testing", {"description" => "Debian testing",
+  #                               "file"        => "/srv/chroot/testing.tgz",
+  #                               "location"    => "/testing",
+  #                               "groups"      => "sbuild"})
+  #   => true
   # @param name [String] name of chroot
   # @param kwargs [Hash] options
-  # @return [Bool]
-  def add(name, kwargs = {})
-    readconf()
-    filename = @conf_d+name
-    if @chroots[name] or File.exists?(filename)
+  # @param force [Bool] should we override existing config
+  # @return [Bool] true if operation has completed successfully
+  def self.add(name, kwargs = {}, force=false)
+    chroots = readconf()
+    filename = CONF_D+name
+    if (chroots[name] or File.exists?(filename)) and !force
       return false
     else
       begin
@@ -64,8 +69,29 @@ class SchrootConfig
       kwargs.each do |param, value|
         stream.puts "#{param}=#{value}"
       end
+      stream.close
     end
     return true
+  end
+
+  # Removes chroot from .../chroot.d/ directory
+  #
+  # @example
+  # SchrootConfig.remove("testing", true)
+  #   => true
+  # @param name [String] name of chroot
+  # @param kwargs [Hash] options
+  # @param force [Bool] should we override existing config
+  # @return [Bool] true if operation has completed successfully
+  def self.remove(name, force=false)
+    chroots = readconf()
+    filename = CONF_D+name
+    if (File.exists?(filename) and chroots[name]) or force
+      File.delete(filename)
+      return true
+    else
+      return false
+    end
   end
 end
 
