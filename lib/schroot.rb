@@ -2,8 +2,8 @@ require 'open3'
 require 'logger'
 
 SCHROOT_BASE="/var/lib/schroot"
-BASE_CONF = "/etc/schroot/schroot.conf"
-CONF_D = "/etc/schroot/chroot.d/"
+BASE_CONF="/etc/schroot/schroot.conf"
+CONF_D="/etc/schroot/chroot.d/"
 
 class SchrootError < StandardError
 end
@@ -21,33 +21,34 @@ class SchrootConfig
       stream = File.open(file,"r")
       current = nil
       while (line = stream.gets)
-        if validate_name(line)
-          current = validate_name(line)[1]
+        if match_name(line)
+          current = match_name(line)[1]
           chroots[current.strip] = {"source" => file}
-        elsif current and validate_param(line)
-          param, value = validate_param(line)[1],validate_param(line)[2]
+        elsif current and match_param(line)
+          param, value = match_param(line)[1],match_param(line)[2]
           chroots[current][param.strip] = value.strip if current
         end
       end
+      stream.close
     end
     return chroots
   end
 
-  def validate_name(name)
+  def match_name(name)
     return /^\s*\[([a-z0-9A-Z\-\_]+)\]/.match(name)
   end
 
-  def validate_param(param)
+  def match_param(param)
     return /^\s*([a-z0-9A-Z\-\_]+)\=(.*)$/.match(param)
   end
 
   # Adds new chroot configuration to .../chroot.d/ directory
   #
   # @example
-  # SchrootConfig.add("testing", {"description" => "Debian testing",
-  #                               "file"        => "/srv/chroot/testing.tgz",
-  #                               "location"    => "/testing",
-  #                               "groups"      => "sbuild"})
+  #   SchrootConfig.add("testing", {"description" => "Debian testing",
+  #                                 "file"        => "/srv/chroot/testing.tgz",
+  #                                 "location"    => "/testing",
+  #                                 "groups"      => "sbuild"})
   #   => true
   # @param name [String] name of chroot
   # @param kwargs [Hash] options
@@ -77,8 +78,8 @@ class SchrootConfig
   # Removes chroot from .../chroot.d/ directory
   #
   # @example
-  # SchrootConfig.remove("testing", true)
-  #   => true
+  #   SchrootConfig.remove("testing", true)
+  #     => true
   # @param name [String] name of chroot
   # @param kwargs [Hash] options
   # @param force [Bool] should we override existing config

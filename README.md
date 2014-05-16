@@ -35,7 +35,8 @@ $ gem install ./*.gem
 or just
 ```bash
 $ rake install
-```  
+```
+
 Examples
 ------
 
@@ -52,6 +53,7 @@ Simple example:
   => "Hello, World!\n"
 ```
 Using logger:
+
 ```ruby
   irb(main):001:0> require 'schroot'
   => true
