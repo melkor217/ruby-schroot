@@ -4,6 +4,7 @@ require 'logger'
 SCHROOT_BASE="/var/lib/schroot"
 BASE_CONF="/etc/schroot/schroot.conf"
 CONF_D="/etc/schroot/chroot.d/"
+CONF_D_PREFIX="99ruby-"
 
 class SchrootError < StandardError
 end
@@ -15,7 +16,7 @@ class SchrootConfig
     chroots = {}
     files = [BASE_CONF]
     Dir.entries(CONF_D).each do |file|
-      files << (CONF_D+file) unless ['.','..'].include? file
+      files << (CONF_D+CONF_D_PREFIX+file) unless ['.','..'].include? file
     end
     files.each do |file|
       stream = File.open(file,"r")
@@ -34,11 +35,11 @@ class SchrootConfig
     return chroots
   end
 
-  def match_name(name)
+  def self.match_name(name)
     return /^\s*\[([a-z0-9A-Z\-\_]+)\]/.match(name)
   end
 
-  def match_param(param)
+  def self.match_param(param)
     return /^\s*([a-z0-9A-Z\-\_]+)\=(.*)$/.match(param)
   end
 
@@ -56,7 +57,7 @@ class SchrootConfig
   # @return [Bool] true if operation has completed successfully
   def self.add(name, kwargs = {}, force=false)
     chroots = readconf()
-    filename = CONF_D+name
+    filename = CONF_D+CONF_D_PREFIX+name
     if (chroots[name] or File.exists?(filename)) and !force
       return false
     else
@@ -86,7 +87,7 @@ class SchrootConfig
   # @return [Bool] true if operation has completed successfully
   def self.remove(name, force=false)
     chroots = readconf()
-    filename = CONF_D+name
+    filename = CONF_D+CONF_D_PREFIX+name
     if (File.exists?(filename) and chroots[name]) or force
       File.delete(filename)
       return true
