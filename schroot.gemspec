@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'schroot'
-  s.version     = '0.0.6'
+  s.version     = '0.0.7'
   s.date        = '2014-05-12'
   s.summary     = "Schroot bindings"
   s.description = "Schroot bindings"
