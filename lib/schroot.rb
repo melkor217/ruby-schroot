@@ -1,10 +1,10 @@
 require 'open3'
 require 'logger'
 
-SCHROOT_BASE="/var/lib/schroot"
-BASE_CONF="/etc/schroot/schroot.conf"
-CONF_D="/etc/schroot/chroot.d/"
-CONF_D_PREFIX="99ruby-"
+SCHROOT_BASE='/var/lib/schroot'
+BASE_CONF='/etc/schroot/schroot.conf'
+CONF_D='/etc/schroot/chroot.d/'
+CONF_D_PREFIX='99ruby-'
 
 class SchrootError < StandardError
 end
@@ -16,15 +16,15 @@ class SchrootConfig
     chroots = {}
     files = [BASE_CONF]
     Dir.entries(CONF_D).each do |file|
-      files << (CONF_D+CONF_D_PREFIX+file) unless ['.','..'].include? file
+      files << (CONF_D+CONF_D_PREFIX+file) unless %w(. ..).include? file
     end
     files.each do |file|
-      stream = File.open(file,"r")
+      stream = File.open(file,'r')
       current = nil
-      while (line = stream.gets)
+      while line = stream.gets
         if match_name(line)
           current = match_name(line)[1]
-          chroots[current.strip] = {"source" => file}
+          chroots[current.strip] = {:source => file}
         elsif current and match_param(line)
           param, value = match_param(line)[1],match_param(line)[2]
           chroots[current][param.strip] = value.strip if current
@@ -56,7 +56,7 @@ class SchrootConfig
   # @param force [Bool] should we override existing config
   # @return [Bool] true if operation has completed successfully
   def self.add(name, kwargs = {}, force=false)
-    chroots = readconf()
+    chroots = readconf
     filename = CONF_D+CONF_D_PREFIX+name
     if (chroots[name] or File.exists?(filename)) and !force
       return false
@@ -66,7 +66,7 @@ class SchrootConfig
       rescue Errno::EACCES
         raise SchrootError, "Cannot open #{filename} for writing"
       end
-      stream.puts "# Generated automatically with ruby-schroot"
+      stream.puts '# Generated automatically with ruby-schroot'
       stream.puts "[#{name}]"
       kwargs.each do |param, value|
         stream.puts "#{param}=#{value}"
@@ -86,7 +86,7 @@ class SchrootConfig
   # @param force [Bool] should we override existing config
   # @return [Bool] true if operation has completed successfully
   def self.remove(name, force=false)
-    chroots = readconf()
+    chroots = readconf
     filename = CONF_D+CONF_D_PREFIX+name
     if (File.exists?(filename) and chroots[name]) or force
       File.delete(filename)
@@ -118,17 +118,17 @@ class Schroot
     begin
       stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
     rescue Errno::ENOENT
-      raise SchrootError, "Schroot binary is missing!"
+      raise SchrootError, 'Schroot binary is missing!'
     end
     if wait_thr.value != 0
-      raise SchrootError, "`%s` execution failed with %i" % [cmd, wait_thr.value]
+      raise SchrootError, '`%s` execution failed with %i' % [cmd, wait_thr.value]
     end
     @logger.info("Done!")
     return stdin, stdout, stderr
   end
 
   def command(cmd, kwargs = {})
-    raise SchrootError, "No current session" unless @session
+    raise SchrootError, 'No current session' unless @session
     command = ['schroot', '-r', '-c', @session]
     if kwargs.has_key? :user
       command  << '-u'
@@ -139,7 +139,7 @@ class Schroot
     end
     command << '--'
     command << cmd
-    return command.join(" ")
+    command.join(' ')
   end
 
   # Runs command inside of chroot session.
@@ -152,14 +152,14 @@ class Schroot
   # @param kwargs [Hash] extra args
   # @return [Array<(IO:fd, IO:fd, IO:fd)>] descriptors for stdin, stdout, stderr
   def run(cmd, kwargs = {})
-    return safe_run(command(cmd,kwargs))
+    safe_run(command(cmd,kwargs))
   end
 
   # Clones current session
   #
   # @return [Object] new session object
   def clone
-    return Schroot.new(@chroot)
+    Schroot.new(@chroot)
   end
 
   # Starts the session of `chroot_name` chroot
@@ -168,16 +168,15 @@ class Schroot
   # @return [String] schroot session id
   # A string representing schroot session id.
   def start(chroot_name = 'default')
-    @logger.debug("Starting chroot session")
+    @logger.debug('Starting chroot session')
     stop if @session
-    command = ['schroot', '-b', '-c', chroot_name]
     ObjectSpace.define_finalizer(self, proc { stop })
-    stdin, stdout, stderr = safe_run("schroot -b -c %s" % chroot_name)
+    stdin, stdout, stderr = safe_run('schroot -b -c %s' % chroot_name)
     @chroot = chroot_name
     @session = stdout.gets.strip
-    stdin, stdout, stderr = safe_run("schroot --location -c session:%s" % @session)
+    stdin, stdout, stderr = safe_run('schroot --location -c session:%s' % @session)
     @location = stdout.gets.strip
-    @logger.debug("Session %s with %s started in %s" % [@session, @chroot, @location])
+    @logger.debug('Session %s with %s started in %s' % [@session, @chroot, @location])
     return @session
   end
 
@@ -186,9 +185,9 @@ class Schroot
   # @param chroot_name [String] name of configured chroot
   # @return [nil] session_id of killed session (should be nil)
   def stop
-    @logger.debug("Stopping session %s with %s" % [@session, @chroot])
+    @logger.debug('Stopping session %s with %s' % [@session, @chroot])
     stdin, stdout, stderr = safe_run("schroot -e -c %s" % @session)
-    @logger.debug("Session %s of %s should be stopped" % [@session, @chroot])
+    @logger.debug('Session %s of %s should be stopped' % [@session, @chroot])
     @location = nil
     @session = nil
 
@@ -197,7 +196,7 @@ class Schroot
   # Sets log object
   def log(log=@logger)
     @logger = log
-    @logger.debug("Hello there!")
+    @logger.debug('Hello there!')
   end
 
   private :safe_run, :command
