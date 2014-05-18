@@ -36,11 +36,11 @@ module Schroot
   end
 
   def self.match_name(name)
-    return /^\s*\[([a-z0-9A-Z\-\_]+)\]/.match(name)
+    return /^\s*\[([a-z0-9A-Z\-_]+)\]/.match(name)
   end
 
   def self.match_param(param)
-    return /^\s*([a-z0-9A-Z\-\_]+)\=(.*)$/.match(param)
+    return /^\s*([a-z0-9A-Z\-_]+)=(.*)$/.match(param)
   end
 
   # Adds new chroot configuration to .../chroot.d/ directory
@@ -62,7 +62,7 @@ module Schroot
       return false
     else
       begin
-        stream = File.open(filename, "w")
+        stream = File.open(filename, 'w')
       rescue Errno::EACCES
         raise SchrootError, "Cannot open #{filename} for writing"
       end
@@ -114,27 +114,24 @@ module Schroot
     end
 
     def safe_run(cmd)
-      @logger.info("Executing %s" % cmd)
+      @logger.info('Executing %s' % cmd)
       begin
         stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
       rescue Errno::ENOENT
         raise SchrootError, 'Schroot binary is missing!'
       end
-      if wait_thr.value != 0
-        raise SchrootError, '`%s` execution failed with %i' % [cmd, wait_thr.value]
-      end
-      @logger.info("Done!")
+      @logger.info('Done!')
       return stdin, stdout, stderr, wait_thr
     end
 
-    def command(cmd, kwargs = {})
+    def command(cmd, user, preserve_environment)
       raise SchrootError, 'No current session' unless @session
       command = ['schroot', '-r', '-c', @session]
-      if kwargs.has_key? :user
+      if user
         command << '-u'
-        command << kwargs[:user]
+        command << user
       end
-      if kwargs.has_key? :preserve_environment
+      if preserve_environment
         command << '-p'
       end
       command << '--'
@@ -149,10 +146,11 @@ module Schroot
     #   session.run("ping localhost",{:user => 'rainbowdash',:preserve_environment => true})
     #     => [#<IO:fd 16>, #<IO:fd 18>, #<IO:fd 20>]
     # @param cmd [String] command to run
-    # @param kwargs [Hash] extra args
+    # @param user [String] user
+    # @param preserve_environment [Bool] should we preserve environment
     # @return [Array<(IO:fd, IO:fd, IO:fd)>] descriptors for stdin, stdout, stderr
-    def run(cmd, kwargs = {})
-      safe_run(command(cmd, kwargs))
+    def run(cmd, user: nil, preserve_environment: nil)
+      safe_run(command(cmd, user, preserve_environment))
     end
 
     # Clones current session
@@ -185,7 +183,7 @@ module Schroot
     # @return [nil] session_id of killed session (should be nil)
     def stop
       @logger.debug('Stopping session %s with %s' % [@session, @chroot])
-      safe_run("schroot -e -c %s" % @session)
+      safe_run('schroot -e -c %s' % @session)
       @logger.debug('Session %s of %s should be stopped' % [@session, @chroot])
       @location = nil
       @session = nil
