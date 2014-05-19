@@ -1,6 +1,8 @@
-# Ruby::Schroot
+# Schroot
 
-TODO: Write a gem description
+Schroot gem allows to create `schroot` sessions and execute commands in the chroot environment from ruby code.
+Currently it just calls schroot binaries.
+Ability to manage chroots (eg create) is coming soon.
 
 ## Installation
 
