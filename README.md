@@ -25,39 +25,48 @@ Or install it yourself as:
 Simple example:
      
 ```ruby
-  irb(main):005:0> require 'schroot'
-  => true
-  irb(main):006:0> my_session = Schroot.new('sid')
-  => #<Schroot:0x8ba789c @chroot="sid", @session="sid-19131ba0-84ba-42e5-a2fb-d2d375d61750", @location="/var/lib/schroot/mount/sid-19131ba0-84ba-42e5-a2fb-d2d375d61750">
-  irb(main):007:0> stdin, stdout, stderr = my_session.run("echo Hello, World!")
-  => [#<IO:fd 22>, #<IO:fd 24>, #<IO:fd 26>]
-  irb(main):008:0> stdout.gets
-  => "Hello, World!\n"
+>> require 'schroot'
+=> true
+>> session = Schroot::Chroot.new('sid')
+=> #<Schroot::Chroot:0x82858b8 @logger=#<Logger:0x8285890 @progname=nil, @level=0, @default_formatter=#<Logger::Formatter:0x828587c @datetime_format=nil>, formatternil, logdevnil, session"sid-8861c7e6-2339-47b3-bdf5-d79435cefea2", chroot"sid", location"/var/lib/schroot/mount/sid-8861c7e6-2339-47b3-bdf5-d79435cefea2"
+>> session.run("uname -a",
+?>             :user => 'rainbowdash',
+?>             :preserve_environment => true) do |stdin, stdout, stderr, wait_thr|
+?>   puts wait_thr.pid, wait_thr.value, stdout.read
+>> end
+30983
+pid 30983 exit 0
+Linux dan-desktop 3.14-1-686-pae #1 SMP Debian 3.14.2-1 (2014-04-28) i686 GNU/Linux
+=> nil
+
 ```
 Using logger:
 
 ```ruby
-  irb(main):001:0> require 'schroot'
-  => true
-  irb(main):002:0> my_logger = Logger.new(STDOUT)
-  => #<Logger:0x0000000199b460 @progname=nil, @level=0, @default_formatter=#<Logger::Formatter:0x0000000199b438 @datetime_format=nil>, @formatter=nil, @logdev=#<Logger::LogDevice:0x0000000199b3c0 @shift_size=nil, @shift_age=nil, @filename=nil, @dev=#<IO:<STDOUT>>, @mutex=#<Logger::LogDevice::LogDeviceMutex:0x0000000199b370 @mon_owner=nil, @mon_count=0, @mon_mutex=#<Mutex:0x0000000199b2f8>>>>
-  irb(main):003:0> session = Schroot.new('default') do
-  irb(main):004:1*   log my_logger
-  irb(main):005:1> end
-  D, [2014-05-06T19:49:15.497952 #3084] DEBUG -- : Hello there!
-  D, [2014-05-06T19:49:15.498035 #3084] DEBUG -- : Starting chroot session
-  I, [2014-05-06T19:49:15.498069 #3084]  INFO -- : Executing schroot -b -c default
-  I, [2014-05-06T19:49:15.584809 #3084]  INFO -- : Done!
-  I, [2014-05-06T19:49:15.584939 #3084]  INFO -- : Executing schroot --location -c session:sid-7cefa94f-4bea-4d30-b4a9-d3008c255360
-  I, [2014-05-06T19:49:15.591380 #3084]  INFO -- : Done!
-  D, [2014-05-06T19:49:15.591504 #3084] DEBUG -- : Session sid-7cefa94f-4bea-4d30-b4a9-d3008c255360 with default started in /var/lib/schroot/mount/sid-7cefa94f-4bea-4d30-b4a9-d3008c255360
-  => #<Schroot:0x000000019acda0 @logger=#<Logger:0x0000000199b460 @progname=nil, @level=0, @default_formatter=#<Logger::Formatter:0x0000000199b438 @datetime_format=nil>, @formatter=nil, @logdev=#<Logger::LogDevice:0x0000000199b3c0 @shift_size=nil, @shift_age=nil, @filename=nil, @dev=#<IO:<STDOUT>>, @mutex=#<Logger::LogDevice::LogDeviceMutex:0x0000000199b370 @mon_owner=nil, @mon_count=0, @mon_mutex=#<Mutex:0x0000000199b2f8>>>>, @chroot="default", @session="sid-7cefa94f-4bea-4d30-b4a9-d3008c255360", @location="/var/lib/schroot/mount/sid-7cefa94f-4bea-4d30-b4a9-d3008c255360">
-  irb(main):006:0> stream = session.run('uname -a')
-  I, [2014-05-06T19:50:35.057816 #3084]  INFO -- : Executing schroot -r -c sid-7cefa94f-4bea-4d30-b4a9-d3008c255360 -- uname -a
-  I, [2014-05-06T19:50:35.251893 #3084]  INFO -- : Done!
-  => [#<IO:fd 13>, #<IO:fd 15>, #<IO:fd 17>]
-  irb(main):007:0> stream[1].gets
-  => "Linux dan-desktop 3.13-1-amd64 #1 SMP Debian 3.13.7-1 (2014-03-25) x86_64 GNU/Linux\n"
+>> require 'schroot'
+=> true
+>> session = Schroot::Chroot.new('sid') do
+?> log Logger.new(STDOUT)
+>> end
+D, [2014-05-20T02:06:06.278458 #32663] DEBUG -- : Hello there!
+D, [2014-05-20T02:06:06.278572 #32663] DEBUG -- : Starting chroot session
+I, [2014-05-20T02:06:06.278632 #32663]  INFO -- : Executing schroot -b -c sid
+I, [2014-05-20T02:06:06.454060 #32663]  INFO -- : Done!
+I, [2014-05-20T02:06:06.454199 #32663]  INFO -- : Executing schroot --location -c session:sid-0a254101-12c2-44d6-a1b8-60a88e81b427
+I, [2014-05-20T02:06:06.465670 #32663]  INFO -- : Done!
+D, [2014-05-20T02:06:06.465802 #32663] DEBUG -- : Session sid-0a254101-12c2-44d6-a1b8-60a88e81b427 with sid started in /var/lib/schroot/mount/sid-0a254101-12c2-44d6-a1b8-60a88e81b427
+=> #<Schroot::Chroot:0x924f85c @logger=#<Logger:0x924f640 @progname=nil, @level=0, @default_formatter=#<Logger::Formatter:0x924f62c @datetime_format=nil>, formatternil, logdev#<Logger::LogDevice:0x924f604 @shift_size=nil, @shift_age=nil, @filename=nil, @dev=#<IO:<STDOUT>, mutex#<Logger::LogDevice::LogDeviceMutex:0x924f5f0 @mon_owner=nil, @mon_count=0, @mon_mutex=#<Mutex:0x924f5c8>, session"sid-0a254101-12c2-44d6-a1b8-60a88e81b427", chroot"sid", location"/var/lib/schroot/mount/sid-0a254101-12c2-44d6-a1b8-60a88e81b427"
+>> session.run("whoami") { |stdin, stdout| puts stdout.read }
+I, [2014-05-20T02:06:16.607930 #32663]  INFO -- : Executing schroot -r -c sid-0a254101-12c2-44d6-a1b8-60a88e81b427 -- whoami
+dan
+I, [2014-05-20T02:06:16.677187 #32663]  INFO -- : Done!
+=> #<Process::Status: pid 329 exit 0>
+>> session.stop
+D, [2014-05-20T02:06:35.798690 #32663] DEBUG -- : Stopping session sid-0a254101-12c2-44d6-a1b8-60a88e81b427 with sid
+I, [2014-05-20T02:06:35.798781 #32663]  INFO -- : Executing schroot -e -c sid-0a254101-12c2-44d6-a1b8-60a88e81b427
+I, [2014-05-20T02:06:36.021379 #32663]  INFO -- : Done!
+D, [2014-05-20T02:06:36.021518 #32663] DEBUG -- : Session sid-0a254101-12c2-44d6-a1b8-60a88e81b427 of sid should be stopped
+=> nil
 ```
 
 ## Contributing
