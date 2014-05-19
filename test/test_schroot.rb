@@ -3,7 +3,7 @@ require 'schroot'
 
 class SchrootTest < Test::Unit::TestCase
   def test_start
-    test = Schroot.new('default')
+    test = Schroot::Chroot.new('default')
     print_debug(test,:test)
 
     assert_not_nil test.session
@@ -25,8 +25,11 @@ class SchrootTest < Test::Unit::TestCase
     test.stop
     print_debug(test,:stopped)
 
-    test = Schroot.new
-    assert_equal test.run("echo -n 123")[1].gets, "123"
+    test = Schroot::Chroot.new('default')
+    stream = test.run("echo -n 123")
+    assert_not_nil stream[3].pid
+    assert_equal stream[3].value, 0
+    assert_equal stream[1].gets, "123"
     assert_equal test.run("echo 123")[1].gets, "123\n"
   end
 
