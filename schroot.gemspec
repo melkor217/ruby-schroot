@@ -1,18 +1,24 @@
-Gem::Specification.new do |s|
-  s.name        = 'schroot'
-  s.version     = '0.0.7'
-  s.date        = '2014-05-12'
-  s.summary     = "Schroot bindings"
-  s.description = "Schroot bindings"
-  s.authors     = ["Daniil Guzanov"]
-  s.email       = 'melkor217@gmail.com'
-  #s.required_ruby_version = '>= 1.8.6'
-  s.files       = ["lib/schroot.rb",
-    "test/test_schroot.rb",
-    "README.md",
-    "Rakefile"]
-  s.test_files  = ["test/test_schroot.rb"]
-  s.homepage    =
-  'https://github.com/melkor217/ruby-schroot'
-  s.license     = 'WTFPL'
+# coding: utf-8
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'schroot/version'
+
+Gem::Specification.new do |spec|
+  spec.name          = "schroot"
+  spec.version       = Schroot::VERSION
+  spec.authors       = ["Daniil Guzanov"]
+  spec.email         = ["melkor217@gmail.com"]
+  spec.summary       = %q{Schroot bindings.}
+  spec.description   = %q{Ruby bindings for schroot.}
+  spec.homepage      = "https://github.com/melkor217/ruby-schroot"
+  spec.license       = "WTFPL"
+
+  spec.files         = `git ls-files -z`.split("\x0")
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.require_paths = ["lib"]
+
+  spec.add_development_dependency "bundler", "~> 1.6"
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "rspec"
 end

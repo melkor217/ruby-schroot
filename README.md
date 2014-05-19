@@ -1,44 +1,22 @@
-ruby-schroot
-============
+# Ruby::Schroot
 
-Ruby bindings for debian schroot
+TODO: Write a gem description
 
-What is it?
---------
-It's a gem which allows to create `schroot` sessions and execute commands in the chroot environment from ruby code.
-Currently it just calls schroot binaries.
-Ability to manage chroots (eg create) is coming soon.
+## Installation
 
-Usage
--------
-Library requires installed chroot binary. All chroots u want to use should be configured in `/etc/schroot/schroot.conf` or `/etc/schroot/conf.d/`.
+Add this line to your application's Gemfile:
 
-Little example:
+    gem 'schroot'
 
-    [sid]
-    type=directory
-    description=Debian sid (unstable)
-    union-type=aufs
-    directory=/srv/chroot/sid
-    users=dan
-    groups=dan
-    root-groups=root
-    aliases=unstable,default
+And then execute:
 
-Library installation is pretty simple:
+    $ bundle
 
-```bash
-$ rake
-$ gem install ./*.gem
-```
-     
-or just
-```bash
-$ rake install
-```
+Or install it yourself as:
 
-Examples
-------
+    $ gem install schroot
+
+## Usage
 
 Simple example:
      
@@ -78,3 +56,10 @@ Using logger:
   => "Linux dan-desktop 3.13-1-amd64 #1 SMP Debian 3.13.7-1 (2014-03-25) x86_64 GNU/Linux\n"
 ```
 
+## Contributing
+
+1. Fork it ( https://github.com/melkor217/ruby-schroot/fork )
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create a new Pull Request

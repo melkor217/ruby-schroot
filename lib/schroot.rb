@@ -11,8 +11,8 @@ module Schroot
   class SchrootError < StandardError
   end
 
-  # @return [Hash] representation of current config fules
-  def self.readconf
+  # @return [Hash] representation of current config files
+  def self.read_config
     chroots = {}
     files = [BASE_CONF]
     Dir.entries(CONF_D).each do |file|
@@ -56,7 +56,7 @@ module Schroot
   # @param force [Bool] should we override existing config
   # @return [Bool] true if operation has completed successfully
   def self.add(name, kwargs = {}, force=false)
-    chroots = readconf
+    chroots = read_config
     filename = CONF_D+CONF_D_PREFIX+name
     if (chroots[name] or File.exists?(filename)) and !force
       return false
@@ -86,7 +86,7 @@ module Schroot
   # @param force [Bool] should we override existing config
   # @return [Bool] true if operation has completed successfully
   def self.remove(name, force=false)
-    chroots = readconf
+    chroots = read_config
     filename = CONF_D+CONF_D_PREFIX+name
     if (File.exists?(filename) and chroots[name]) or force
       File.delete(filename)
