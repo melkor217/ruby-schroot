@@ -113,15 +113,20 @@ module Schroot
       start(chroot_name)
     end
 
-    def safe_run(cmd)
+    def safe_run(cmd, &block)
       @logger.info('Executing %s' % cmd)
       begin
-        stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
+        stream = Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
+          if block_given?
+            block.call stdin, stdout, stderr, wait_thr
+          end
+        end
+          #stream[3].value
       rescue Errno::ENOENT
         raise SchrootError, 'Schroot binary is missing!'
       end
       @logger.info('Done!')
-      return stdin, stdout, stderr, wait_thr
+      return stream
     end
 
     def command(cmd, user, preserve_environment)
@@ -140,17 +145,23 @@ module Schroot
     end
 
     # Runs command inside of chroot session.
-    # Session must be started before.
+    # Invocation is popen3-like
+    # Session must be started before executing command.
     #
     # @example
-    #   session.run("ping localhost",{:user => 'rainbowdash',:preserve_environment => true})
-    #     => [#<IO:fd 16>, #<IO:fd 18>, #<IO:fd 20>]
+    #   session.run("uname -a",
+    #               :user => 'rainbowdash',
+    #               :preserve_environment => true) do |stdin, stdout, stderr, wait_thr|
+    #     puts wait_thr.pid, wait_thr.value, stdout.read
+    #   end
     # @param cmd [String] command to run
     # @param user [String] user
-    # @param preserve_environment [Bool] should we preserve environment
-    # @return [Array<(IO:fd, IO:fd, IO:fd)>] descriptors for stdin, stdout, stderr
-    def run(cmd, user: nil, preserve_environment: nil)
-      safe_run(command(cmd, user, preserve_environment))
+    def run(cmd, user: nil, preserve_environment: nil, &block)
+      if block_given?
+        safe_run(command(cmd, user, preserve_environment)) do |stdin, stout, stderr, wait_thr|
+          block.call stdin, stout, stderr, wait_thr
+        end
+      end
     end
 
     # Clones current session
@@ -169,11 +180,16 @@ module Schroot
       @logger.debug('Starting chroot session')
       stop if @session
       ObjectSpace.define_finalizer(self, proc { stop })
-      state = safe_run('schroot -b -c %s' % chroot_name)
+      state = safe_run('schroot -b -c %s' % chroot_name) do |stdin, stdout, stderr, wait_thr|
+        wait_thr.value
+        @session = stdout.gets.strip
+      end
+
       @chroot = chroot_name
-      @session = state[1].gets.strip
-      state = safe_run('schroot --location -c session:%s' % @session)
-      @location = state[1].gets.strip
+      state = safe_run('schroot --location -c session:%s' % @session) do |stdin, stdout, stderr, wait_thr|
+        wait_thr.value
+        @location = stdout.gets.strip
+      end
       @logger.debug('Session %s with %s started in %s' % [@session, @chroot, @location])
       @session
     end
