@@ -150,12 +150,13 @@ module Schroot
     #
     # @example
     #   session.run("uname -a",
-    #               :user => 'rainbowdash',
-    #               :preserve_environment => true) do |stdin, stdout, stderr, wait_thr|
+    #               user: 'rainbowdash',
+    #               preserve_environment: true) do |stdin, stdout, stderr, wait_thr|
     #     puts wait_thr.pid, wait_thr.value, stdout.read
     #   end
     # @param cmd [String] command to run
     # @param user [String] user
+    # @param preserve_environment [Bool] Should we preserve environment variables
     def run(cmd, user: nil, preserve_environment: nil, &block)
       safe_run(command(cmd, user, preserve_environment)) do |stdin, stout, stderr, wait_thr|
         if block_given?
