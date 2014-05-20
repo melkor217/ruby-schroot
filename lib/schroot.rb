@@ -126,7 +126,7 @@ module Schroot
         raise SchrootError, 'Schroot binary is missing!'
       end
       @logger.info('Done!')
-      return stream
+      stream
     end
 
     def command(cmd, user, preserve_environment)
@@ -175,15 +175,15 @@ module Schroot
     # Starts the session of `chroot_name` chroot
     #
     # @param chroot_name [String] name of configured chroot
-    # @return [String] schroot session id
-    # A string representing schroot session id.
+    # @return [String] A string representing schroot session id.
     def start(chroot_name = 'default')
       @logger.debug('Starting chroot session')
       stop if @session
       ObjectSpace.define_finalizer(self, proc { stop })
-      state = safe_run('schroot -b -c %s' % chroot_name) do |stdin, stdout, stderr, wait_thr|
+      safe_run('schroot -b -c %s' % chroot_name) do |stdin, stdout, stderr, wait_thr|
         wait_thr.value
         @session = stdout.gets.strip
+      @session
       end
 
       @chroot = chroot_name
