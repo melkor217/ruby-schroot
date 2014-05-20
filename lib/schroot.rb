@@ -120,8 +120,8 @@ module Schroot
           if block_given?
             block.call stdin, stdout, stderr, wait_thr
           end
+          wait_thr.value
         end
-          #stream[3].value
       rescue Errno::ENOENT
         raise SchrootError, 'Schroot binary is missing!'
       end
@@ -157,10 +157,11 @@ module Schroot
     # @param cmd [String] command to run
     # @param user [String] user
     def run(cmd, user: nil, preserve_environment: nil, &block)
-      if block_given?
-        safe_run(command(cmd, user, preserve_environment)) do |stdin, stout, stderr, wait_thr|
+      safe_run(command(cmd, user, preserve_environment)) do |stdin, stout, stderr, wait_thr|
+        if block_given?
           block.call stdin, stout, stderr, wait_thr
         end
+        wait_thr.value
       end
     end
 
