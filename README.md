@@ -1,4 +1,4 @@
-# Schroot
+# Schroot [![Gem Version](https://badge.fury.io/rb/schroot.png)](http://badge.fury.io/rb/schroot) 
 
 Schroot gem allows to create `schroot` sessions and execute commands in the chroot environment from ruby code.
 
