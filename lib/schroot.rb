@@ -8,6 +8,7 @@ module Schroot
   CONF_D='/etc/schroot/chroot.d/'
   CONF_D_PREFIX='99ruby-'
 
+
   class SchrootError < StandardError
   end
 
@@ -16,7 +17,7 @@ module Schroot
     chroots = {}
     files = [BASE_CONF]
     Dir.entries(CONF_D).each do |file|
-      files << (CONF_D+CONF_D_PREFIX+file) unless %w(. ..).include? file
+      files << (CONF_D+file) unless %w(. ..).include? file
     end
     files.each do |file|
       stream = File.open(file, 'r')
@@ -74,6 +75,22 @@ module Schroot
       stream.close
     end
     return true
+  end
+
+  def self.bootstrap (name, release, mirror: 'http://http.debian.net/debian/', log: Logger.new(nil), &block)
+    chroots = read_config
+    directory = chroots[name]['directory']
+    if directory and ::File.exists? directory
+      command = "debootstrap #{release} #{directory} #{mirror}"
+      log.info 'Running `%s`' % command
+      Open3.popen2e(command) do |stdin, stdout_and_stderr, wait_thr|
+        log.info 'PID: %s' % wait_thr.pid
+        while line = stdout_and_stderr.gets do
+          log.debug line.strip
+        end
+        log.info 'Exited with %s' % wait_thr.value
+      end
+    end
   end
 
   # Removes chroot from .../chroot.d/ directory
@@ -184,7 +201,7 @@ module Schroot
       safe_run('schroot -b -c %s' % chroot_name) do |stdin, stdout, stderr, wait_thr|
         wait_thr.value
         @session = stdout.gets.strip
-      @session
+        @session
       end
 
       @chroot = chroot_name
