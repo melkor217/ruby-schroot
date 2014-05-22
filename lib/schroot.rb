@@ -77,6 +77,14 @@ module Schroot
     return true
   end
 
+  # Installs base Debian system, into chroot using debootstrap
+  #
+  # @example
+  #   bootstrap('my_chroot', 'testing', log: Logger.new(STDOUT))
+  # @param name [String] VM's name (should be defined in schroot config)
+  # @param release [String] Release to install (e.g. 'sid', 'jessie', 'stable')
+  # @param mirror [String] What debian mirror should we use
+  # @param log [Logger] Where should be put bootstrap logs
   def self.bootstrap (name, release, mirror: 'http://http.debian.net/debian/', log: Logger.new(nil), &block)
     chroots = read_config
     directory = chroots[name]['directory']
