@@ -191,6 +191,29 @@ module Schroot
       end
     end
 
+    # Copies file from or to the chroot
+    #
+    # @param what [String] Source path
+    # @param where [String] Destination path
+    # @param whence [Symbol] Defines where should we dst file: from host (:host) or from chroot (:chroot)
+    def copy(what, where, whence: :host, recursive: false)
+      if whence == :host
+        where = File.join(@location, where)
+      elsif whence == :chroot
+        what = File.join(@location, what)
+      else
+        return nil
+      end
+      flags = ''
+      if recursive
+        flags << '-r'
+      end
+
+      safe_run('cp %s %s %s' % [flags, cwhat, where]) do |stdin, stout, stderr, wait_thr|
+        wait_thr.value
+      end
+    end
+
     # Clones current session
     #
     # @return [Object] new session object
