@@ -253,7 +253,6 @@ module Schroot
       @logger.debug('Session %s of %s should be stopped' % [@session, @chroot])
       @location = nil
       @session = nil
-
     end
 
     # Sets log object
@@ -265,5 +264,4 @@ module Schroot
     private :safe_run, :command
     attr_reader :session, :location, :chroot, :logger
   end
-
 end
